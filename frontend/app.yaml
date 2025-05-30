@@ -1,5 +1,5 @@
 runtime: nodejs20
-service: layanan-rumah-sakit
+service: gudang-sparepart
 instance_class: F1
 env_variables:
   NODE_ENV: 'production'
