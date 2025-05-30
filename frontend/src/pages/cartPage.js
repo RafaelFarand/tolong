@@ -6,7 +6,7 @@ const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000';
 
 class CartPage extends React.Component {
   state = {
-    orders: [],
+    orders: [], // Ensure this is always an array
     loading: true,
     error: null,
     userId: null,
@@ -20,68 +20,31 @@ class CartPage extends React.Component {
   fetchOrders = async () => {
     try {
       const token = localStorage.getItem("token");
-      let userId = null;
+      if (!token) throw new Error("Token tidak ditemukan");
+
+      const payload = JSON.parse(atob(token.split(".")[1]));
+      const userId = payload?.id;
       
-      // Validate token exists
-      if (!token) {
-        throw new Error("Token tidak ditemukan");
-      }
-
-      try {
-        const payload = JSON.parse(atob(token.split(".")[1]));
-        userId = payload?.id;
-        
-        // Debug log
-        console.log("Decoded token payload:", payload);
-        console.log("User ID from token:", userId);
-      } catch (err) {
-        console.error("Error parsing token:", err);
-        throw new Error("Token tidak valid");
-      }
-
-      if (!userId) {
-        throw new Error("User ID tidak ditemukan dalam token");
-      }
-
-      // Log request details
-      console.log("Making request to:", `/api/orders/user/${userId}`);
-      
-      const res = await axios.get(`${API_BASE_URL}/api/orders/user/${userId}`, {
+      const res = await axios.get(`https://be-rest-1061342868557.us-central1.run.app/api/orders/user/${userId}`, {
         headers: { 
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        validateStatus: function (status) {
-          return status >= 200 && status < 300; // Default success status validation
+          Authorization: `Bearer ${token}`
         }
       });
 
-      if (!res.data) {
-        throw new Error("Tidak ada data yang diterima dari server");
-      }
-
-      // Log successful response
-      console.log("Server response:", res.data);
-
+      // Add data validation
+      const orders = Array.isArray(res.data) ? res.data : [];
+      
       this.setState({
-        orders: res.data,
+        orders,
         loading: false,
         userId,
         selectedOrders: [],
       });
     } catch (err) {
-      // Enhanced error logging
-      console.error("Error fetching orders:", {
-        message: err.message,
-        response: err.response?.data,
-        status: err.response?.status,
-        statusText: err.response?.statusText
-      });
-      
       this.setState({ 
-        error: err.response?.data?.message || err.message || "Gagal memuat keranjang", 
-        loading: false 
+        error: err.message || "Gagal memuat keranjang",
+        loading: false,
+        orders: [] 
       });
     }
   };

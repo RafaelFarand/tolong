@@ -5,7 +5,7 @@ import axios from "axios";
 class Home extends BasePage {
   state = {
     carouselIndex: 0,
-    products: [],
+    products: [], // Ensure this is always an array
     loading: true,
     error: null,
     animating: false,
@@ -15,10 +15,12 @@ class Home extends BasePage {
   async componentDidMount() {
     try {
       const res = await axios.get("/api/products");
-      this.setState({ products: res.data, loading: false });
+      // Add data validation
+      const products = Array.isArray(res.data) ? res.data : [];
+      this.setState({ products, loading: false });
       this.carouselTimer = setInterval(() => this.nextCarousel("right"), 3500);
     } catch (err) {
-      this.setState({ error: "Gagal memuat produk", loading: false });
+      this.setState({ error: "Gagal memuat produk", loading: false, products: [] });
     }
   }
   componentWillUnmount() {

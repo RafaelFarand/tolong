@@ -5,12 +5,12 @@ import { useNavigate } from "react-router-dom";
 
 class Product extends BasePage {
   state = {
-    products: [],
+    products: [], // Ensure this is always an array
     filteredProducts: [],
+    selectedCategory: "",
     loading: true,
     error: null,
     role: null,
-    selectedCategory: "sparepart",
     categories: ["sparepart", "oli", "aksesoris"],
   };
 
@@ -25,11 +25,20 @@ class Product extends BasePage {
     } catch {}
     this.setState({ loading: true, role });
     try {
-      const res = await fetch("/api/products");
-      const products = await res.json();
-      this.setState({ products, filteredProducts: products, loading: false });
+      const res = await axios.get("/api/products");
+      const products = Array.isArray(res.data) ? res.data : [];
+      this.setState({
+        products,
+        filteredProducts: products,
+        loading: false,
+      });
     } catch (err) {
-      this.setState({ error: "Gagal memuat produk", loading: false });
+      this.setState({
+        error: "Gagal memuat produk",
+        loading: false,
+        products: [],
+        filteredProducts: [],
+      });
     }
   }
 

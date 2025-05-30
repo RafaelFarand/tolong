@@ -21,6 +21,7 @@ import EditProduct from "./pages/EditProduct";
 import { CSSTransition, TransitionGroup } from "react-transition-group";
 import "./custom.css"; // Importing custom CSS
 import "./fade-page.css"; // Import CSS for page transition effects
+import ErrorBoundary from "./components/ErrorBoundary";
 
 function AppRoutes() {
   const location = useLocation();
@@ -82,13 +83,15 @@ function App() {
   }, []);
 
   return (
-    <div className="app-container">
-      <Navbar />
-      <main className="main-content">
-        <AppRoutes />
-      </main>
-      <Footer />
-    </div>
+    <ErrorBoundary>
+      <div className="app-container">
+        <Navbar />
+        <main className="main-content">
+          <AppRoutes />
+        </main>
+        <Footer />
+      </div>
+    </ErrorBoundary>
   );
 }
 
