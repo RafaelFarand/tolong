@@ -1,10 +1,10 @@
 steps:
   - name: "gcr.io/cloud-builders/docker"
-    args: ["build", "-t", "gcr.io/$PROJECT_ID/tcc-be-rest", "."]
+    args: ["build", "-t", "gcr.io/$PROJECT_ID/sparepart", "."]
     dir: "backend"
 
   - name: "gcr.io/cloud-builders/docker"
-    args: ["push", "gcr.io/$PROJECT_ID/tcc-be-rest"]
+    args: ["push", "gcr.io/$PROJECT_ID/sparepart"]
 
   - name: "gcr.io/cloud-builders/gcloud"
     args: [
@@ -12,7 +12,7 @@ steps:
         "deploy",
         "be-rest",
         "--image",
-        "gcr.io/$PROJECT_ID/tcc-be-rest",
+        "gcr.io/$PROJECT_ID/sparepart",
         "--timeout",
         "1000s",
         "--port",
