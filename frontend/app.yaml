@@ -3,6 +3,7 @@ service: gudang-sparepart
 instance_class: F1
 env_variables:
   NODE_ENV: 'production'
+  REACT_APP_API_URL: 'https://be-rest-1061342868557.us-central1.run.app'
 
 handlers:
   # Tangani file statis dulu
