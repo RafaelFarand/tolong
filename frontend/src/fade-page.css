@@ -1,0 +1,25 @@
+/* Animasi transisi halaman global */
+.fade-page-enter {
+  opacity: 0;
+  transform: translateY(16px) scale(0.98);
+  z-index: 0;
+}
+.fade-page-enter-active {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  transition: opacity 350ms cubic-bezier(0.4, 2, 0.6, 1),
+    transform 350ms cubic-bezier(0.4, 2, 0.6, 1);
+}
+.fade-page-exit {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+.fade-page-exit-active {
+  opacity: 0 !important;
+  transform: translateY(-16px) scale(0.98) !important;
+  transition: opacity 400ms cubic-bezier(0.4, 2, 0.6, 1),
+    transform 400ms cubic-bezier(0.4, 2, 0.6, 1) !important;
+}
+.page-transition-wrapper {
+  min-height: 100vh;
+}
