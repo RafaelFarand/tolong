@@ -1,19 +1,38 @@
 steps:
   # Step 1: Install dependencies
   - name: "gcr.io/cloud-builders/npm"
-    args: ['install']
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        if [ ! -d "node_modules" ]; then
+          echo "Installing dependencies..."
+          npm ci
+        else
+          echo "Skipping npm install, node_modules exists."
+        fi
     dir: "frontend"
+    volumes:
+      - name: "npm-cache"
+        path: /root/.npm
 
   # Step 2: Build frontend
   - name: "gcr.io/cloud-builders/npm"
-    args: ['run', 'build']
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        npm run build
     dir: "frontend"
+    volumes:
+      - name: "npm-cache"
+        path: /root/.npm
 
-  # Step 3: Deploy to App Engine
+  # Step 3: Deploy ke App Engine
   - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
-    args: ['app', 'deploy', 'app.yaml', '--quiet']
+    entrypoint: gcloud
+    args: ["app", "deploy", "--quiet"]
     dir: "frontend"
 
-timeout: '1800s'
 options:
   logging: CLOUD_LOGGING_ONLY
