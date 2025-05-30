@@ -29,7 +29,7 @@ app.use('/api/refresh', refreshTokenRoutes);
 
 // Tes koneksi awal
 app.get('/', (req, res) => {
-  res.send('E-commerce API is running');
+  res.send('Sparepart API is running');
 });
 
 // Jalankan server

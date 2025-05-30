@@ -47,7 +47,7 @@ class ProductForm extends React.Component {
       };
 
       const response = await axios.post(
-        "http://localhost:5000/api/products",
+        "https://be-rest-1061342868557.us-central1.run.app/api/products",
         formData,
         config
       );
