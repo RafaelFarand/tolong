@@ -1,0 +1,167 @@
+### Test API Connection
+GET https://be-rest-1061342868557.us-central1.run.app
+
+### User Routes ###
+
+# Register User
+POST https://be-rest-1061342868557.us-central1.run.app/api/users/register
+Content-Type: application/json
+
+{
+  "username": "almerr",
+  "password": "almerr",
+  "email": "almer@email.com",
+  "role": "admin"
+}
+
+# Register Admin User
+POST https://be-rest-1061342868557.us-central1.run.app/api/users/register
+Content-Type: application/json
+
+{
+    "username": "admin123",
+    "password": "admin_password123",
+    "email": "admin@example.com",
+    "role": "admin"
+}
+
+# Login User
+POST https://be-rest-1061342868557.us-central1.run.app/api/users/login
+Content-Type: application/json
+
+{
+  "username": "testuser",
+  "password": "password123"
+}
+
+# Get User by ID
+GET https://be-rest-1061342868557.us-central1.run.app/api/users/1
+Authorization: Bearer <your_token>
+
+# Update User
+PUT https://be-rest-1061342868557.us-central1.run.app/api/users/1
+Authorization: Bearer <your_token>
+Content-Type: application/json
+
+{
+  "username": "updateduser",
+  "email": "updated@email.com",
+  "role": "user"
+}
+
+# Delete User
+DELETE https://be-rest-1061342868557.us-central1.run.app/api/users/1
+Authorization: Bearer <your_token>
+
+### Product Routes ###
+
+# Get All Products
+GET https://be-rest-1061342868557.us-central1.run.app/api/products
+
+# Get Product by ID
+GET https://be-rest-1061342868557.us-central1.run.app/api/products/1
+
+# Create Product (with image)
+POST https://be-rest-1061342868557.us-central1.run.app/api/products
+Authorization: Bearer <your_token>
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary
+
+------WebKitFormBoundary
+Content-Disposition: form-data; name="name"
+
+Product Name
+------WebKitFormBoundary
+Content-Disposition: form-data; name="price"
+
+100000
+------WebKitFormBoundary
+Content-Disposition: form-data; name="stock"
+
+10
+------WebKitFormBoundary
+Content-Disposition: form-data; name="description"
+
+Product Description
+------WebKitFormBoundary
+Content-Disposition: form-data; name="category"
+
+Category1
+------WebKitFormBoundary
+Content-Disposition: form-data; name="image"; filename="product.jpg"
+Content-Type: image/jpeg
+
+< ./path/to/your/image.jpg
+------WebKitFormBoundary--
+
+# Delete Product
+DELETE https://be-rest-1061342868557.us-central1.run.app/api/products/1
+Authorization: Bearer <your_token>
+
+### Order Routes ###
+
+# Get All Orders
+GET https://be-rest-1061342868557.us-central1.run.app/api/orders
+Authorization: Bearer <your_token>
+
+# Get Order by ID
+GET https://be-rest-1061342868557.us-central1.run.app/api/orders/1
+Authorization: Bearer <your_token>
+
+# Create Order
+POST https://be-rest-1061342868557.us-central1.run.app/api/orders
+Authorization: Bearer <your_token>
+Content-Type: application/json
+
+{
+  "product_id": 1,
+  "quantity": 2,
+  "total_price": 200000
+}
+
+# Update Order
+PUT https://be-rest-1061342868557.us-central1.run.app/api/orders/1
+Authorization: Bearer <your_token>
+Content-Type: application/json
+
+{
+  "quantity": 3,
+  "total_price": 300000
+}
+
+# Delete Order
+DELETE https://be-rest-1061342868557.us-central1.run.app/api/orders/1
+Authorization: Bearer <your_token>
+
+# Get Orders by User ID
+GET https://be-rest-1061342868557.us-central1.run.app/api/orders/user/1
+Authorization: Bearer <your_token>
+
+# Checkout All Orders
+PUT https://be-rest-1061342868557.us-central1.run.app/api/orders/checkout
+Authorization: Bearer <your_token>
+
+# Checkout Specific Order
+PUT https://be-rest-1061342868557.us-central1.run.app/api/orders/checkout/1
+Authorization: Bearer <your_token>
+
+# Get Checked Out Orders by User ID
+GET https://be-rest-1061342868557.us-central1.run.app/api/orders/user/1/checkedout
+Authorization: Bearer <your_token>
+
+### Refresh Token Routes ###
+
+# Get New Access Token
+POST https://be-rest-1061342868557.us-central1.run.app/api/refresh/token
+Content-Type: application/json
+
+{
+  "refreshToken": "<your_refresh_token>"
+}
+
+# Logout (Remove Refresh Token)
+POST https://be-rest-1061342868557.us-central1.run.app/api/refresh/logout
+Content-Type: application/json
+
+{
+  "refreshToken": "<your_refresh_token>"
+}
