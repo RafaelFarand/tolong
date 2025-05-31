@@ -22,10 +22,16 @@ class Login extends BasePage {
     e.preventDefault();
     this.setState({ loading: true, error: null, success: null });
     try {
-      const res = await axios.post("/api/users/login", {
-        username: this.state.username,
-        password: this.state.password,
-      });
+const res = await axios.post(
+  "/api/users/login",
+  {
+    username: this.state.username,
+    password: this.state.password,
+  },
+  {
+    withCredentials: true, // ✅ PENTING untuk mengirim cookie (token)
+  }
+);
       
       localStorage.setItem("token", res.data.token);
       
