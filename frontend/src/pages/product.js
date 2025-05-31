@@ -2,6 +2,7 @@ import axios from "axios";
 import Loading from "../components/loading";
 import BasePage from "./BasePage";
 import { useNavigate } from "react-router-dom";
+import API_URL from "../config/api";
 
 class Product extends BasePage {
   state = {
@@ -25,7 +26,7 @@ class Product extends BasePage {
     } catch {}
     this.setState({ loading: true, role });
     try {
-      const res = await axios.get("/api/products");
+      const res = await axios.get(`${API_URL}/api/products`);
       const products = Array.isArray(res.data) ? res.data : [];
       this.setState({
         products,
@@ -67,7 +68,7 @@ class Product extends BasePage {
     }
     try {
       // Default quantity 1, total_price = product.price
-      await fetch("/api/orders", {
+      await fetch(`${API_URL}/api/orders`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -89,11 +90,11 @@ class Product extends BasePage {
     if (!window.confirm("Yakin ingin menghapus produk ini?")) return;
     try {
       const token = localStorage.getItem("token");
-      await axios.delete(`/api/products/${productId}`, {
+      await axios.delete(`${API_URL}/api/products/${productId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       // Setelah hapus, refresh produk dari server
-      const res = await fetch("/api/products");
+      const res = await fetch(`${API_URL}/api/products`);
       const products = await res.json();
       this.setState({
         products,

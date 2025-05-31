@@ -3,6 +3,7 @@ import axios from "axios";
 import BasePage from "./BasePage";
 import ProductForm from "./ProductForm";
 import Cart from "../components/cart";
+import API_URL from "../config/api";
 
 class Dashboard extends BasePage {
   state = {
@@ -31,7 +32,7 @@ class Dashboard extends BasePage {
     this.setState({ role });
     // Ambil data produk
     try {
-      const res = await axios.get("/api/products");
+      const res = await axios.get(`${API_URL}/api/products`);
       this.setState({ products: res.data, loading: false });
     } catch (err) {
       this.setState({ error: "Gagal memuat produk", loading: false });
@@ -41,7 +42,7 @@ class Dashboard extends BasePage {
   handleProductAdded = async () => {
     // Refresh produk setelah tambah
     this.setState({ loading: true });
-    const res = await axios.get("/api/products");
+    const res = await axios.get(`${API_URL}/api/products`);
     this.setState({ products: res.data, loading: false });
   };
 

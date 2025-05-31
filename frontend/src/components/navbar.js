@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import CartIcon from "./cartIcon";
 import { useState, useEffect, useRef } from "react";
 import { FaUserCircle } from "react-icons/fa";
+import API_URL from "../config/api";
 
 // Komponen Link aktif Bulma
 function NavLink({ to, children }) {
@@ -239,7 +240,7 @@ function NavbarContent() {
                       // Hapus akun user
                       try {
                         const token = localStorage.getItem("token");
-                        await fetch(`/api/users/${userId}`, {
+                        await fetch(`${API_URL}/api/users/${userId}`, {
                           method: "DELETE",
                           headers: { Authorization: `Bearer ${token}` },
                         });

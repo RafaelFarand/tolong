@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
+import API_URL from "../config/api";
 
 function UserEdit() {
   const { userId } = useParams();
@@ -25,7 +26,7 @@ function UserEdit() {
       return;
     }
     axios
-      .get(`/api/users/${userId}`, {
+      .get(`${API_URL}/api/users/${userId}`, {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((res) => {
@@ -50,7 +51,7 @@ function UserEdit() {
     const token = localStorage.getItem("token");
     try {
       await axios.put(
-        `/api/users/${userId}`,
+        `${API_URL}/api/users/${userId}`,
         { username: form.username, email: form.email },
         { headers: { Authorization: `Bearer ${token}` } }
       );

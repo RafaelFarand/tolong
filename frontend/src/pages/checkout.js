@@ -1,6 +1,7 @@
 import React from "react";
 import axios from "axios";
 import { Navigate, useLocation } from "react-router-dom";
+import API_URL from "../config/api";
 
 function CheckoutPage() {
   const location = useLocation();
@@ -18,7 +19,7 @@ function CheckoutPage() {
       await Promise.all(
         selectedOrders.map((orderId) =>
           axios.put(
-            `/api/orders/checkout/${orderId}`,
+            `${API_URL}/api/orders/checkout/${orderId}`,
             {},
             { headers: { Authorization: `Bearer ${token}` } }
           )

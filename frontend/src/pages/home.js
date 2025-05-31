@@ -1,6 +1,7 @@
 import React from "react";
 import BasePage from "./BasePage";
 import axios from "axios";
+import API_URL from "../config/api";
 
 class Home extends BasePage {
   state = {
@@ -14,7 +15,7 @@ class Home extends BasePage {
 
   async componentDidMount() {
     try {
-      const res = await axios.get("/api/products");
+      const res = await axios.get(`${API_URL}/api/products`);
       // Add data validation
       const products = Array.isArray(res.data) ? res.data : [];
       this.setState({ products, loading: false });
