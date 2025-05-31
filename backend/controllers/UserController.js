@@ -35,26 +35,42 @@ exports.register = async (req, res) => {
 exports.login = async (req, res) => {
   const { username, password } = req.body;
   try {
+    console.log('Login attempt for username:', username);
+    
     const [user] = await User.findByUsername(username);
-    if (!user.length)
+    console.log('Database response:', user);
+    
+    if (!user.length) {
+      console.log('User not found in database');
       return res.status(404).json({ message: "User not found" });
+    }
 
     const match = await bcrypt.compare(password, user[0].password);
-    if (!match) return res.status(401).json({ message: "Wrong password" });
+    console.log('Password match:', match);
+    
+    if (!match) {
+      return res.status(401).json({ message: "Wrong password" });
+    }
 
     const token = jwt.sign(
       { id: user[0].id, username: user[0].username, role: user[0].role },
       process.env.JWT_SECRET,
-      { expiresIn: "1m" }
+      { expiresIn: "1h" } // Tambah waktu expiry
     );
-    // Generate refresh token
+    
     const refreshToken = RefreshTokenController.generateRefreshToken({
       id: user[0].id,
       username: user[0].username,
       role: user[0].role
     });
-    console.log('Refresh Token untuk user', user[0].username + ':', refreshToken); // Tampilkan di terminal
-    res.json({ token, refreshToken });
+
+    res.json({ 
+      token, 
+      refreshToken,
+      role: user[0].role,
+      userId: user[0].id,
+      username: user[0].username
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

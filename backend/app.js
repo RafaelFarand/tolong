@@ -3,6 +3,7 @@ const path = require('path');
 const app = express();
 const cors = require('cors');
 const dotenv = require('dotenv');
+const db = require('./config/Database');
 
 // Konfigurasi dotenv untuk ambil variabel dari .env
 dotenv.config();
@@ -48,8 +49,25 @@ app.get('/', (req, res) => {
   res.send('Sparepart API is running');
 });
 
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error('Error:', err);
+  res.status(500).json({
+    error: 'Internal Server Error',
+    message: process.env.NODE_ENV === 'development' ? err.message : undefined
+  });
+});
+
 // Jalankan server
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+app.listen(PORT, async () => {
+  try {
+    // Test database connection
+    const [result] = await db.execute('SELECT 1');
+    console.log('Database connection successful');
+    console.log(`Server running on port ${PORT}`);
+  } catch (error) {
+    console.error('Failed to connect to database:', error);
+    process.exit(1);
+  }
 });

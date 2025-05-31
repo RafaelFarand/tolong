@@ -26,25 +26,18 @@ class Login extends BasePage {
         username: this.state.username,
         password: this.state.password,
       });
+      
       localStorage.setItem("token", res.data.token);
-      // Ambil role dari token
-      let role = null;
-      try {
-        // Ambil role dari response backend jika ada
-        if (res.data.role) {
-          role = res.data.role;
-        } else {
-          const payload = JSON.parse(atob(res.data.token.split(".")[1]));
-          role = payload.role;
-        }
-      } catch {}
+      
+      // Ambil role langsung dari response
+      const role = res.data.role;
+      
       this.setState({
         success: "Login berhasil!",
         loading: false,
-        username: "",
-        password: "",
-        redirect: role === "admin" ? "/dashboard" : "/",
+        redirect: role === "admin" ? "/dashboard" : "/"
       });
+
     } catch (err) {
       this.setState({
         error: err.response?.data?.message || "Login gagal",
