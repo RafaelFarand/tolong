@@ -1,6 +1,5 @@
 const express = require('express');
-const path = require('path'); // Pastikan untuk mengimpor path
-
+const path = require('path');
 const app = express();
 const cors = require('cors');
 const dotenv = require('dotenv');
@@ -8,11 +7,18 @@ const dotenv = require('dotenv');
 // Konfigurasi dotenv untuk ambil variabel dari .env
 dotenv.config();
 
-// Middleware
-app.use(cors());
-app.use(express.json()); // Parsing body JSON
+// Update CORS configuration
+app.use(cors({
+  origin: [
+    'https://gudang-sparepart-dot-b-01-450713.uc.r.appspot.com',
+    'http://localhost:3000' // Keep for local development
+  ],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
+}));
 
-// Menyajikan folder 'uploads' sebagai folder statis
+// Middleware
+app.use(express.json()); // Parsing body JSON
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Import Routes
