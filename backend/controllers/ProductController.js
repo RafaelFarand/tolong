@@ -1,19 +1,14 @@
 const Product = require("../models/ProductModel");
-const multer = require("multer");
-const path = require("path");
+const { uploadFile } = require('../config/Storage');
+const multer = require('multer');
 
-// Konfigurasi penyimpanan gambar dengan multer
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "uploads/"); // Menyimpan gambar di folder 'uploads'
-  },
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname); // Mengambil ekstensi file
-    cb(null, Date.now() + ext); // Menyimpan file dengan nama unik berdasarkan timestamp
-  },
+// Ubah konfigurasi multer untuk menyimpan di memory
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB limit
+  }
 });
-
-const upload = multer({ storage }); // Menggunakan konfigurasi multer
 
 exports.getAll = async (req, res) => {
   const [products] = await Product.getAllProducts();
@@ -27,22 +22,34 @@ exports.getById = async (req, res) => {
 };
 
 exports.create = async (req, res) => {
-  const { name, price, stock, description, category } = req.body;
-  const image = req.file ? `/uploads/${req.file.filename}` : ""; // Mendapatkan path gambar yang di-upload
-
   try {
-    // Menyimpan produk ke database dengan path gambar yang di-upload
+    const { name, price, stock, description, category } = req.body;
+    let imageUrl = '';
+
+    if (req.file) {
+      // Upload ke Cloud Storage
+      imageUrl = await uploadFile(req.file);
+    }
+
     await Product.createProduct(
       name,
       price,
       stock,
-      image,
+      imageUrl,
       description,
       category
     );
-    res.status(201).json({ message: "Product created successfully" });
+
+    res.status(201).json({ 
+      message: "Product created successfully",
+      imageUrl 
+    });
   } catch (error) {
-    res.status(500).json({ message: "Failed to create product", error });
+    console.error('Upload error:', error);
+    res.status(500).json({ 
+      message: "Failed to create product", 
+      error: error.message 
+    });
   }
 };
 
