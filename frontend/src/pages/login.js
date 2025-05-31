@@ -2,6 +2,8 @@ import React from "react";
 import BasePage from "./BasePage";
 import axios from "axios";
 import { Navigate } from "react-router-dom";
+import API_URL from "../config/api";
+
 
 class Login extends BasePage {
   state = {
@@ -23,7 +25,7 @@ class Login extends BasePage {
     this.setState({ loading: true, error: null, success: null });
     try {
 const res = await axios.post(
-  "/api/users/login",
+  `${API_URL}/api/users/login`,
   {
     username: this.state.username,
     password: this.state.password,

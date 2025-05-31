@@ -40,6 +40,5 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
-  },
-  "proxy": "https://be-rest-1061342868557.us-central1.run.app"
+  }
 }
