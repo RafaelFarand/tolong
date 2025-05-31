@@ -19,8 +19,17 @@ app.use(cors({
 }));
 
 // Middleware
-app.use(express.json()); // Parsing body JSON
+app.use(express.json({ limit: '10mb' })); // Parsing body JSON
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// Add error handling for JSON parsing
+app.use((err, req, res, next) => {
+  if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
+    return res.status(400).json({ error: 'Invalid JSON format' });
+  }
+  next();
+});
 
 // Import Routes
 const userRoutes = require('./routes/UserRoutes');

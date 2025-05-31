@@ -5,17 +5,29 @@ const RefreshTokenController = require('./RefreshTokenController');
 
 // REGISTER
 exports.register = async (req, res) => {
-  console.log("Register endpoint hit"); // Tambahkan ini
-  console.log("Register data:", req.body); // Log data yang diterima frontend
-  const { username, password, email, role } = req.body;
-  const hashed = await bcrypt.hash(password, 10);
-
   try {
-    // Urutan: username, passwordHash, email, role
-    await User.createUser(username, hashed, email, role);
-    res.status(201).json({ message: "User registered" });
+    console.log("Register endpoint hit");
+    console.log("Request body:", req.body); // Log raw request body
+
+    const { username, password, email, role } = req.body;
+    
+    // Validate required fields
+    if (!username || !password || !email) {
+      return res.status(400).json({ 
+        message: "Username, password, and email are required" 
+      });
+    }
+
+    // Set default role if not provided
+    const userRole = role || 'user';
+    
+    const hashed = await bcrypt.hash(password, 10);
+    await User.createUser(username, hashed, email, userRole);
+    
+    res.status(201).json({ message: "User registered successfully" });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error("Registration error:", err);
+    res.status(500).json({ error: "Registration failed" });
   }
 };
 
