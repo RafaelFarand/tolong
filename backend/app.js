@@ -1,29 +1,42 @@
 const express = require('express');
 const path = require('path');
-const app = express();
 const cors = require('cors');
 const dotenv = require('dotenv');
-const cookieParser = require('cookie-parser'); // Tambahan penting
+const cookieParser = require('cookie-parser');
 const db = require('./config/Database');
 
-// Load environment variables
+const app = express();
+
+// Load .env
 dotenv.config();
 
-// === FIX: CORS configuration ===
+// === Daftar domain yang diperbolehkan ===
+const allowedOrigins = [
+  'https://gudang-sparepart-dot-b-01-450713.uc.r.appspot.com'
+];
+
+// === CORS Middleware ===
 app.use(cors({
-  origin: 'https://gudang-sparepart-dot-b-01-450713.uc.r.appspot.com',
-  credentials: true, // WAJIB untuk kirim cookie/token via fetch/axios
+  origin: function (origin, callback) {
+    // Allow if no origin (e.g., mobile app, Postman), or if it's in the allowed list
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 // === Middleware ===
-app.use(cookieParser()); // WAJIB kalau kirim token via cookie
+app.use(cookieParser());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// === JSON Syntax Error Handler ===
+// === JSON Syntax Error Handling ===
 app.use((err, req, res, next) => {
   if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
     return res.status(400).json({ error: 'Invalid JSON format' });
@@ -31,7 +44,7 @@ app.use((err, req, res, next) => {
   next();
 });
 
-// === Routes Import ===
+// === Import Routes ===
 const userRoutes = require('./routes/UserRoutes');
 const productRoutes = require('./routes/ProductRoutes');
 const orderRoutes = require('./routes/OrderRoutes');
@@ -43,14 +56,14 @@ app.use('/api/products', productRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/refresh', refreshTokenRoutes);
 
-// === Test Route ===
+// === Default route for testing ===
 app.get('/', (req, res) => {
   res.send('Sparepart API is running');
 });
 
 // === Global Error Handling ===
 app.use((err, req, res, next) => {
-  console.error('Error:', err);
+  console.error('Unhandled Error:', err.stack);
   res.status(500).json({
     error: 'Internal Server Error',
     message: process.env.NODE_ENV === 'development' ? err.message : undefined
