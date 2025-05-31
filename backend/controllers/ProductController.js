@@ -1,5 +1,5 @@
 const Product = require("../models/ProductModel");
-const { uploadFile } = require('../config/Storage');
+const { uploadFile } = require('../config/Storage.js');
 const multer = require('multer');
 
 // Ubah konfigurasi multer untuk menyimpan di memory
