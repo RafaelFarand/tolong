@@ -1,8 +1,9 @@
 import React from "react";
 import axios from "axios";
 import { Navigate, useNavigate } from "react-router-dom";
+import API_URL from "../config/api";
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000';
+//const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000';
 
 class CartPage extends React.Component {
   state = {
@@ -25,7 +26,7 @@ class CartPage extends React.Component {
       const payload = JSON.parse(atob(token.split(".")[1]));
       const userId = payload?.id;
       
-      const res = await axios.get(`https://be-rest-1061342868557.us-central1.run.app/api/orders/user/${userId}`, {
+      const res = await axios.get(`${API_URL}/api/orders/user/${userId}`, {
         headers: { 
           Authorization: `Bearer ${token}`
         }
@@ -37,12 +38,13 @@ class CartPage extends React.Component {
       this.setState({
         orders,
         loading: false,
-        userId,
-        selectedOrders: [],
+        error: null
       });
+
     } catch (err) {
+      console.error("Fetch orders error:", err);
       this.setState({ 
-        error: err.message || "Gagal memuat keranjang",
+        error: err.response?.data?.message || "Gagal memuat keranjang",
         loading: false,
         orders: [] 
       });
@@ -50,16 +52,25 @@ class CartPage extends React.Component {
   };
 
   handleDelete = async (orderId) => {
-    if (!window.confirm("Yakin ingin menghapus item ini dari keranjang?"))
-      return;
+    if (!window.confirm("Yakin ingin menghapus item ini dari keranjang?")) return;
+    
     try {
       const token = localStorage.getItem("token");
-      await axios.delete(`/api/orders/${orderId}`, {
-        headers: { Authorization: `Bearer ${token}` },
+      await axios.delete(`${API_URL}/api/orders/${orderId}`, {
+        headers: { 
+          Authorization: `Bearer ${token}` 
+        }
       });
-      await this.fetchOrders();
+      
+      // Refresh data setelah delete
+      this.setState(prevState => ({
+        orders: prevState.orders.filter(order => order.id !== orderId),
+        selectedOrders: prevState.selectedOrders.filter(id => id !== orderId)
+      }));
+
     } catch (err) {
-      alert("Gagal menghapus order");
+      console.error("Delete error:", err);
+      alert(err.response?.data?.message || "Gagal menghapus order");
     }
   };
 

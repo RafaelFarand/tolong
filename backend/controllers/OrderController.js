@@ -64,11 +64,30 @@ exports.update = async (req, res) => {
 
 exports.delete = async (req, res) => {
   const { id } = req.params;
+  const userId = req.user?.id; // Dari JWT token
+
   try {
+    // Cek apakah order milik user yang request
+    const [order] = await Order.getOrderByIdAndUserId(id, userId);
+
+    if (!order.length) {
+      return res.status(404).json({
+        message: "Order not found or unauthorized",
+      });
+    }
+
+    // Hapus order
     await Order.deleteOrder(id);
-    res.json({ message: "Order deleted" });
+
+    res.json({
+      message: "Order deleted successfully",
+      deletedId: id,
+    });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error("Delete order error:", err);
+    res.status(500).json({
+      error: err.message,
+    });
   }
 };
 
