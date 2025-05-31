@@ -11,10 +11,7 @@ dotenv.config();
 
 // === FIX: CORS configuration ===
 app.use(cors({
-  origin: [
-    'https://gudang-sparepart-dot-b-01-450713.uc.r.appspot.com', // deployment URL
-    'http://localhost:3000' // development
-  ],
+  origin: 'https://gudang-sparepart-dot-b-01-450713.uc.r.appspot.com',
   credentials: true, // WAJIB untuk kirim cookie/token via fetch/axios
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
