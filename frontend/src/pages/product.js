@@ -253,7 +253,9 @@ class Product extends BasePage {
                           product.image_url
                             ? product.image_url.startsWith("http")
                               ? product.image_url
-                              : API_URL + product.image_url
+                              : product.image_url.startsWith("/uploads/")
+                                ? API_URL + product.image_url
+                                : API_URL + "/uploads/" + product.image_url.replace(/^.*[\\/]/, "")
                             : "/logo192.png"
                         }
                         alt={product.name}
