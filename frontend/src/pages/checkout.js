@@ -33,6 +33,10 @@ function CheckoutPage() {
     }
   };
 
+  const formatPrice = (price) => {
+    return price?.toLocaleString("id-ID");
+  };
+
   if (success) return <Navigate to="/cart" replace />;
   if (!selectedOrders || !orders) return <Navigate to="/cart" replace />;
 
@@ -94,7 +98,7 @@ function CheckoutPage() {
                     fontSize: 14,
                   }}
                 >
-                  Rp {order.total_price?.toLocaleString("id-ID")}
+                  Rp {formatPrice(order.total_price)}
                 </div>
                 <div style={{ color: "#888", fontSize: 13 }}>
                   x{order.quantity}
@@ -105,7 +109,7 @@ function CheckoutPage() {
         </ul>
         <div className="mt-4 mb-4 has-text-right">
           <span className="is-size-5 has-text-weight-bold">
-            Total: Rp {total.toLocaleString("id-ID")}
+            Total: Rp {formatPrice(total)}
           </span>
         </div>
         <div className="has-text-right">

@@ -57,6 +57,7 @@ class Home extends BasePage {
     return this.renderContainer(
       <section className="section" style={{ minHeight: "100vh" }}>
         <div className="container" style={{ maxWidth: 1100, margin: "0 auto" }}>
+          {/* Keep the title and subtitle */}
           <div className="has-text-centered mb-5">
             <h1
               className="title is-2 mb-2"
@@ -80,6 +81,7 @@ class Home extends BasePage {
               terjangkau dan kualitas terjamin.
             </p>
           </div>
+
           {loading ? (
             <div className="has-text-centered">Memuat produk...</div>
           ) : error ? (
@@ -92,7 +94,7 @@ class Home extends BasePage {
             </div>
           ) : (
             <>
-              {/* Banner/Carousel */}
+              {/* Only keep the Carousel/Banner section */}
               <div
                 className="box"
                 style={{
@@ -224,102 +226,6 @@ class Home extends BasePage {
                     &#8594;
                   </button>
                 </div>
-              </div>
-
-              {/* Produk Unggulan Section */}
-              <h2
-                className="title has-text-centered mb-4"
-                style={{
-                  color: "var(--primary)",
-                  fontWeight: 700,
-                  fontSize: 28,
-                }}
-              >
-                Sparepart Motor Unggulan
-              </h2>
-              <div
-                className="columns is-multiline is-mobile"
-                style={{ marginLeft: -10, marginRight: -10 }}
-              >
-                {featured.map((product, idx) => (
-                  <div
-                    key={product.id}
-                    className="column is-one-third-desktop is-half-tablet is-12-mobile"
-                    style={{ marginBottom: 32 }}
-                  >
-                    <div
-                      className="card"
-                      style={{
-                        border: "none",
-                        borderRadius: 18,
-                        boxShadow: "0 4px 16px 0 rgba(122,178,211,0.10)",
-                        transition: "transform 0.2s, box-shadow 0.2s",
-                        overflow: "hidden",
-                        cursor: "pointer",
-                      }}
-                      onMouseEnter={(e) =>
-                        (e.currentTarget.style.transform = "scale(1.04)")
-                      }
-                      onMouseLeave={(e) =>
-                        (e.currentTarget.style.transform = "scale(1)")
-                      }
-                      onClick={() => (window.location.href = "/products")}
-                    >
-                      <div
-                        className="card-image has-text-centered"
-                        style={{
-                          background: "var(--secondary-bg)",
-                          padding: 24,
-                        }}
-                      >
-                        <figure
-                          className="image is-128x128 is-inline-block"
-                          style={{ margin: 0 }}
-                        >
-                          <img
-                            src={product.image_url || "/logo192.png"}
-                            alt={product.name}
-                            style={{
-                              objectFit: "cover",
-                              borderRadius: 14,
-                              boxShadow: "0 2px 8px 0 rgba(74,98,138,0.08)",
-                            }}
-                          />
-                        </figure>
-                      </div>
-                      <div className="card-content" style={{ padding: 14 }}>
-                        <p
-                          className="title is-5"
-                          style={{
-                            color: "var(--primary)",
-                            fontWeight: 600,
-                            marginBottom: 2,
-                            fontSize: 14,
-                          }}
-                        >
-                          {product.name}
-                        </p>
-                        <p
-                          className="subtitle is-6"
-                          style={{
-                            color: "var(--accent)",
-                            fontWeight: 500,
-                            marginBottom: 6,
-                            fontSize: 13,
-                          }}
-                        >
-                          Rp {product.price?.toLocaleString("id-ID")}
-                        </p>
-                        <p
-                          className="has-text-grey"
-                          style={{ fontSize: 12, minHeight: 24 }}
-                        >
-                          {product.description}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
               </div>
             </>
           )}

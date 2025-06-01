@@ -218,7 +218,7 @@ class Product extends BasePage {
                 <div
                   className="card"
                   style={{
-                    border: "2px solid #ffe082",
+                    border: "2px solid var(--blue)",
                     borderRadius: 16,
                     boxShadow: "0 6px 24px 0 rgba(255,224,130,0.13)",
                     transition: "transform 0.2s, box-shadow 0.2s",
