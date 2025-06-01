@@ -1,6 +1,5 @@
 import axios from "axios";
 import React from "react";
-import { formatPrice } from "../utils/formatPrice"; // Pastikan ini sesuai dengan path utils Anda
 
 class ProductForm extends React.Component {
   state = {
@@ -34,8 +33,7 @@ class ProductForm extends React.Component {
     try {
       const formData = new FormData();
       formData.append("name", name);
-      // Convert price string to number and remove any existing thousand separators
-      formData.append("price", price.toString().replace(/\./g, ''));
+      formData.append("price", price);
       formData.append("stock", stock);
       formData.append("description", description);
       formData.append("category", category);
@@ -122,12 +120,9 @@ class ProductForm extends React.Component {
             <input
               className="input"
               name="price"
-              type="text" // Changed from number to text
-              value={this.state.price}
-              onChange={(e) => {
-                const value = e.target.value.replace(/\D/g, '');
-                this.setState({ price: formatPrice(value) });
-              }}
+              type="number"
+              value={price}
+              onChange={this.handleChange}
               required
               style={{ color: "var(--primary)", borderColor: "var(--red)", background: "var(--white)" }}
             />

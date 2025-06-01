@@ -329,7 +329,7 @@ class Product extends BasePage {
                             borderBottomLeftRadius: 16,
                             fontWeight: 700,
                             color: "#c0392b",
-                            borderRight: "1px solid #ffe0b2",
+                            borderRight: "1px solidrgb(22, 1, 255)",
                             display: "flex",
                             alignItems: "center",
                             gap: 6,
