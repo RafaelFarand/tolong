@@ -1,5 +1,4 @@
 const { Storage } = require('@google-cloud/storage');
-const path = require('path');
 
 const storage = new Storage({
   projectId: process.env.GOOGLE_CLOUD_PROJECT,
@@ -24,11 +23,20 @@ const uploadFile = (file) => {
       },
     });
 
-    blobStream.on('error', (error) => reject(error));
-    blobStream.on('finish', () => {
-      // Membuat URL publik
-      const publicUrl = `https://storage.googleapis.com/${bucket.name}/${blob.name}`;
-      resolve(publicUrl);
+    blobStream.on('error', (error) => {
+      console.error('Upload error:', error);
+      reject(error);
+    });
+
+    blobStream.on('finish', async () => {
+      try {
+        // Make the file public
+        await blob.makePublic();
+        const publicUrl = `https://storage.googleapis.com/${bucket.name}/${blob.name}`;
+        resolve(publicUrl);
+      } catch (error) {
+        reject(error);
+      }
     });
 
     blobStream.end(file.buffer);
