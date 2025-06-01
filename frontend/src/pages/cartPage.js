@@ -135,9 +135,7 @@ class CartPage extends React.Component {
                       title="Pilih untuk checkout"
                     />
                     <img
-                      src={
-                        order.image_url || order.product_image || "/logo192.png"
-                      }
+                      src={order.image_url ? (order.image_url.startsWith('http') ? order.image_url : API_URL + order.image_url) : (order.product_image ? (order.product_image.startsWith('http') ? order.product_image : API_URL + order.product_image) : "/logo192.png")}
                       alt={order.product_name || order.name || "Produk"}
                       style={{
                         width: 56,
