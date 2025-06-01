@@ -3,23 +3,12 @@ const router = express.Router();
 const controller = require("../controllers/ProductController");
 const verifyToken = require("../middleware/VerifyToken");
 const multer = require("multer");
-const { Storage } = require('@google-cloud/storage');
 
-// Initialize Google Cloud Storage
-const storage = new Storage();
-const bucketName = "tolong"; // Changed to your bucket name
-const bucket = storage.bucket(bucketName);
+// Konfigurasi multer: menyimpan file di memory (untuk dikirim ke Google Cloud Storage)
+const storage = multer.memoryStorage();
+const upload = multer({ storage });
 
-// Multer configuration
-const multerStorage = multer.memoryStorage();
-const upload = multer({ 
-  storage: multerStorage,
-  limits: {
-    fileSize: 5 * 1024 * 1024, // 5MB limit
-  }
-});
-
-// Product routes
+// Product Routes
 router.post("/", verifyToken, upload.single("image"), controller.create);
 router.put("/:id", verifyToken, upload.single("image"), controller.update);
 router.get("/", controller.getAll);

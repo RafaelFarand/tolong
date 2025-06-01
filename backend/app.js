@@ -10,26 +10,24 @@ const app = express();
 // Load .env
 dotenv.config();
 
-// Updated CORS configuration
+// === Daftar domain yang diperbolehkan ===
 const allowedOrigins = [
-  'https://gudang-sparepart-dot-b-01-450713.uc.r.appspot.com',
-  'https://be-rest-1061342868557.us-central1.run.app'
+  'https://gudang-sparepart-dot-b-01-450713.uc.r.appspot.com'
 ];
 
+// === CORS Middleware ===
 app.use(cors({
   origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
-
-    if (allowedOrigins.indexOf(origin) === -1) {
-      var msg = 'The CORS policy for this site does not allow access from the specified Origin.';
-      return callback(new Error(msg), false);
+    // Allow if no origin (e.g., mobile app, Postman), or if it's in the allowed list
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
     }
-    return callback(null, true);
   },
+  credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 // === Middleware ===
