@@ -1,156 +1,182 @@
 const Product = require("../models/ProductModel");
-const { uploadFile, deleteFile } = require("../config/Storage");
+const { Storage } = require("@google-cloud/storage");
+const storage = new Storage();
+const bucketName = "tolong"; // Changed to your bucket name
+const bucket = storage.bucket(bucketName);
+const path = require("path");
 
-exports.getAll = async (req, res) => {
-  try {
-    const [products] = await Product.getAllProducts();
-    res.json(products);
-  } catch (error) {
-    res.status(500).json({ message: "Failed to get products", error });
-  }
-};
-
-exports.getById = async (req, res) => {
-  try {
-    const [product] = await Product.getProductById(req.params.id);
-    if (!product.length)
-      return res.status(404).json({ message: "Product not found" });
-    res.json(product[0]);
-  } catch (error) {
-    res.status(500).json({ message: "Failed to get product", error });
-  }
-};
-
+// Create product
 exports.create = async (req, res) => {
-  try {
-    const { name, price, stock, description, category } = req.body;
-    let imageUrl = "";
+  const { name, price, stock, description, category } = req.body;
+  const file = req.file;
 
-    if (req.file) {
-      imageUrl = await uploadFile(req.file);
-    }
-
-    await Product.createProduct(
-      name,
-      price,
-      stock,
-      imageUrl,
-      description,
-      category
-    );
-
-    res.status(201).json({
-      message: "Product created successfully",
-      imageUrl,
-    });
-  } catch (error) {
-    console.error("Create product error:", error);
-    res.status(500).json({
-      message: "Failed to create product",
-      error: error.message,
-    });
+  if (!file) {
+    return res.status(400).json({ message: "No image file provided." });
   }
-};
 
-exports.update = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { name, price, stock, description, category } = req.body;
-    let imageUrl = undefined;
+  if (!name || !price || !stock || !description || !category) {
+    return res.status(400).json({ message: "All fields are required." });
+  }
 
-    // Tambahkan logging untuk debug
-    console.log("Update request:", {
-      id,
-      body: req.body,
-      file: req.file,
-    });
+  const blob = bucket.file(
+    `uploads/${Date.now()}${path.extname(file.originalname)}`
+  );
+  const blobStream = blob.createWriteStream({
+    resumable: false,
+  });
 
-    // Get existing product
-    const [existingProduct] = await Product.getProductById(id);
-    if (!existingProduct.length) {
-      console.log("Product not found:", id);
-      return res.status(404).json({ message: "Product not found" });
+  blobStream.on("error", (err) => {
+    console.error("GCP UPLOAD ERROR:", err);
+    if (!res.headersSent) {
+      return res.status(500).json({
+        message: "Error uploading file to GCP",
+        error: err.message || err,
+      });
     }
+  });
 
-    // Handle image upload if new image provided
-    if (req.file) {
-      try {
-        // Delete old image if exists
-        if (existingProduct[0].image_url) {
-          await deleteFile(existingProduct[0].image_url);
-        }
-        // Upload new image
-        imageUrl = await uploadFile(req.file);
-      } catch (uploadError) {
-        console.error("Image upload error:", uploadError);
-        return res.status(500).json({
-          message: "Failed to upload image",
-          error: uploadError.message,
+  blobStream.on("finish", async () => {
+    const imageUrl = `https://storage.googleapis.com/${bucketName}/${blob.name}`;
+
+    try {
+      await Product.createProduct(
+        name,
+        price,
+        stock,
+        imageUrl,
+        description,
+        category
+      );
+      res.status(201).json({ message: "Product created successfully" });
+    } catch (error) {
+      console.error("CREATE PRODUCT DB ERROR:", error);
+      if (!res.headersSent) {
+        res.status(500).json({
+          message: "Failed to create product",
+          error: error.message || error,
         });
       }
     }
+  });
 
-    // Prepare update data
-    const updateData = {
-      name: name || existingProduct[0].name,
-      price: price || existingProduct[0].price,
-      stock: stock !== undefined ? stock : existingProduct[0].stock,
-      description: description || existingProduct[0].description,
-      category: category || existingProduct[0].category,
-      image_url:
-        imageUrl !== undefined
-          ? imageUrl
-          : existingProduct[0].image_url,
-    };
+  blobStream.end(file.buffer);
+};
 
-    console.log("Update data:", updateData);
+// Get all products
+exports.getAll = async (req, res) => {
+  try {
+    const [products] = await Product.getAllProducts();
+    const updatedProducts = products.map((product) => {
+      if (product.image_url) {
+        if (!product.image_url.startsWith("https://")) {
+          product.image_url = `https://storage.googleapis.com/${bucketName}/${product.image_url}`;
+        }
+      }
+      return product;
+    });
 
-    // Update product
+    res.json(updatedProducts);
+  } catch (error) {
+    res.status(500).json({ message: "Failed to retrieve products", error });
+  }
+};
+
+// Get product by ID
+exports.getById = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const [product] = await Product.getProductById(id);
+    if (!product || product.length === 0) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+
+    const productData = product[0];
+    if (productData.image_url && !productData.image_url.startsWith("https://")) {
+      productData.image_url = `https://storage.googleapis.com/${bucketName}/${productData.image_url}`;
+    }
+
+    res.json(productData);
+  } catch (error) {
+    res.status(500).json({ message: "Failed to retrieve product", error });
+  }
+};
+
+// Update product
+exports.update = async (req, res) => {
+  const { id } = req.params;
+  const { name, price, stock, description, category } = req.body;
+  let imageUrl;
+
+  try {
+    // Get existing product
+    const [existingProduct] = await Product.getProductById(id);
+    if (!existingProduct || existingProduct.length === 0) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+
+    if (req.file) {
+      // Upload new image
+      const blob = bucket.file(
+        `uploads/${Date.now()}${path.extname(req.file.originalname)}`
+      );
+      const blobStream = blob.createWriteStream({
+        resumable: false,
+      });
+
+      blobStream.on("error", (err) => {
+        throw new Error(`Error uploading file to GCP: ${err.message}`);
+      });
+
+      // Handle new image upload
+      await new Promise((resolve, reject) => {
+        blobStream.on("finish", () => {
+          imageUrl = `https://storage.googleapis.com/${bucketName}/${blob.name}`;
+          resolve();
+        });
+        blobStream.on("error", reject);
+        blobStream.end(req.file.buffer);
+      });
+    }
+
+    // Update product with new or existing image
     await Product.updateProduct(
       id,
-      updateData.name,
-      updateData.price,
-      updateData.stock,
-      updateData.image_url,
-      updateData.description,
-      updateData.category
+      name || existingProduct[0].name,
+      price || existingProduct[0].price,
+      stock || existingProduct[0].stock,
+      imageUrl || existingProduct[0].image_url,
+      description || existingProduct[0].description,
+      category || existingProduct[0].category
     );
 
-    res.json({
-      message: "Product updated successfully",
-      data: updateData,
-    });
+    res.status(200).json({ message: "Product updated successfully" });
   } catch (error) {
-    console.error("Update product error:", error);
+    console.error("Update error:", error);
     res.status(500).json({
       message: "Failed to update product",
       error: error.message,
-      stack: process.env.NODE_ENV === "development" ? error.stack : undefined,
     });
   }
 };
 
+// Delete product
 exports.delete = async (req, res) => {
+  const { id } = req.params;
   try {
-    const { id } = req.params;
-
-    // Get product details first
     const [product] = await Product.getProductById(id);
-    if (!product.length) {
-      return res.status(404).json({ message: "Product not found" });
+    if (product && product.length > 0 && product[0].image_url) {
+      // Delete image from GCP if exists
+      const fileName = product[0].image_url.split("/").pop();
+      try {
+        await bucket.file(`uploads/${fileName}`).delete();
+      } catch (deleteError) {
+        console.error("Failed to delete image from GCP:", deleteError);
+      }
     }
 
-    // Delete image from Cloud Storage if exists
-    if (product[0].image_url) {
-      await deleteFile(product[0].image_url);
-    }
-
-    // Delete product from database
     await Product.deleteProduct(id);
-
     res.json({ message: "Product deleted successfully" });
   } catch (error) {
-    console.error("Delete product error:", error);
     res.status(500).json({ message: "Failed to delete product", error });
   }
 };
