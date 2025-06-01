@@ -1,98 +1,156 @@
 const Product = require("../models/ProductModel");
-const multer = require("multer");
-const path = require("path");
-
-// Konfigurasi penyimpanan gambar dengan multer
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "uploads/"); // Menyimpan gambar di folder 'uploads'
-  },
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname); // Mengambil ekstensi file
-    cb(null, Date.now() + ext); // Menyimpan file dengan nama unik berdasarkan timestamp
-  },
-});
-
-const upload = multer({ storage }); // Menggunakan konfigurasi multer
+const { uploadFile, deleteFile } = require("../config/Storage");
 
 exports.getAll = async (req, res) => {
-  const [products] = await Product.getAllProducts();
-  res.json(products);
+  try {
+    const [products] = await Product.getAllProducts();
+    res.json(products);
+  } catch (error) {
+    res.status(500).json({ message: "Failed to get products", error });
+  }
 };
 
 exports.getById = async (req, res) => {
-  const { id } = req.params;
-  const [product] = await Product.getProductById(id);
-  res.json(product[0]);
+  try {
+    const [product] = await Product.getProductById(req.params.id);
+    if (!product.length)
+      return res.status(404).json({ message: "Product not found" });
+    res.json(product[0]);
+  } catch (error) {
+    res.status(500).json({ message: "Failed to get product", error });
+  }
 };
 
 exports.create = async (req, res) => {
-  const { name, price, stock, description, category } = req.body;
-  const image = req.file ? `/uploads/${req.file.filename}` : ""; // Mendapatkan path gambar yang di-upload
-
   try {
-    // Menyimpan produk ke database dengan path gambar yang di-upload
+    const { name, price, stock, description, category } = req.body;
+    let imageUrl = "";
+
+    if (req.file) {
+      imageUrl = await uploadFile(req.file);
+    }
+
     await Product.createProduct(
       name,
       price,
       stock,
-      image,
+      imageUrl,
       description,
       category
     );
-    res.status(201).json({ message: "Product created successfully" });
-  } catch (error) {
-    res.status(500).json({ message: "Failed to create product", error });
-  }
-};
 
-exports.delete = async (req, res) => {
-  const { id } = req.params;
-  try {
-    // Hapus semua order yang terkait dengan produk ini (baik pending maupun checked_out)
-    const db = require('../config/Database');
-    await db.execute('DELETE FROM orders WHERE product_id = ?', [id]);
-    // Hapus produk setelah semua order terkait dihapus
-    await Product.deleteProduct(id);
-    res.json({ message: "Product deleted successfully" });
+    res.status(201).json({
+      message: "Product created successfully",
+      imageUrl,
+    });
   } catch (error) {
-    // Tangani error constraint foreign key
-    let msg = "Failed to delete product";
-    if (
-      error &&
-      error.sqlMessage &&
-      error.sqlMessage.includes("a foreign key constraint fails")
-    ) {
-      msg =
-        "Tidak dapat menghapus produk karena masih ada order/transaksi yang menggunakan produk ini.";
-    }
-    res.status(500).json({ error: msg });
+    console.error("Create product error:", error);
+    res.status(500).json({
+      message: "Failed to create product",
+      error: error.message,
+    });
   }
 };
 
 exports.update = async (req, res) => {
-  const { id } = req.params;
-  const { name, price, stock, description, category } = req.body;
-  let image;
-  if (req.file) {
-    image = `/uploads/${req.file.filename}`;
-  } else {
-    // Ambil image lama dari database jika tidak upload gambar baru
-    const [product] = await Product.getProductById(id);
-    image = product[0]?.image_url || "";
-  }
   try {
+    const { id } = req.params;
+    const { name, price, stock, description, category } = req.body;
+    let imageUrl = undefined;
+
+    // Tambahkan logging untuk debug
+    console.log("Update request:", {
+      id,
+      body: req.body,
+      file: req.file,
+    });
+
+    // Get existing product
+    const [existingProduct] = await Product.getProductById(id);
+    if (!existingProduct.length) {
+      console.log("Product not found:", id);
+      return res.status(404).json({ message: "Product not found" });
+    }
+
+    // Handle image upload if new image provided
+    if (req.file) {
+      try {
+        // Delete old image if exists
+        if (existingProduct[0].image_url) {
+          await deleteFile(existingProduct[0].image_url);
+        }
+        // Upload new image
+        imageUrl = await uploadFile(req.file);
+      } catch (uploadError) {
+        console.error("Image upload error:", uploadError);
+        return res.status(500).json({
+          message: "Failed to upload image",
+          error: uploadError.message,
+        });
+      }
+    }
+
+    // Prepare update data
+    const updateData = {
+      name: name || existingProduct[0].name,
+      price: price || existingProduct[0].price,
+      stock: stock !== undefined ? stock : existingProduct[0].stock,
+      description: description || existingProduct[0].description,
+      category: category || existingProduct[0].category,
+      image_url:
+        imageUrl !== undefined
+          ? imageUrl
+          : existingProduct[0].image_url,
+    };
+
+    console.log("Update data:", updateData);
+
+    // Update product
     await Product.updateProduct(
       id,
-      name,
-      price,
-      stock,
-      image,
-      description,
-      category
+      updateData.name,
+      updateData.price,
+      updateData.stock,
+      updateData.image_url,
+      updateData.description,
+      updateData.category
     );
-    res.status(200).json({ message: "Product updated successfully" });
+
+    res.json({
+      message: "Product updated successfully",
+      data: updateData,
+    });
   } catch (error) {
-    res.status(500).json({ message: "Failed to update product", error });
+    console.error("Update product error:", error);
+    res.status(500).json({
+      message: "Failed to update product",
+      error: error.message,
+      stack: process.env.NODE_ENV === "development" ? error.stack : undefined,
+    });
+  }
+};
+
+exports.delete = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Get product details first
+    const [product] = await Product.getProductById(id);
+    if (!product.length) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+
+    // Delete image from Cloud Storage if exists
+    if (product[0].image_url) {
+      await deleteFile(product[0].image_url);
+    }
+
+    // Delete product from database
+    await Product.deleteProduct(id);
+
+    res.json({ message: "Product deleted successfully" });
+  } catch (error) {
+    console.error("Delete product error:", error);
+    res.status(500).json({ message: "Failed to delete product", error });
   }
 };

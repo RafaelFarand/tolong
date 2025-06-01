@@ -3,25 +3,26 @@ const router = express.Router();
 const controller = require("../controllers/ProductController");
 const verifyToken = require("../middleware/VerifyToken");
 const multer = require("multer");
-const path = require("path"); // Pastikan path diimpor di sini
 
-// Konfigurasi multer (menyimpan file gambar)
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "uploads/"); // Menyimpan file gambar di folder 'uploads'
+// Konfigurasi multer untuk menyimpan file di memory
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB limit
   },
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname); // Mengambil ekstensi file
-    cb(null, Date.now() + ext);
-  },
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Hanya file gambar yang diperbolehkan'));
+    }
+  }
 });
-const upload = multer({ storage });
 
-// Menambahkan middleware untuk upload gambar
-router.post("/", verifyToken, upload.single("image"), controller.create);
-router.put("/:id", verifyToken, upload.single("image"), controller.update);
 router.get("/", controller.getAll);
 router.get("/:id", controller.getById);
+router.post("/", verifyToken, upload.single("image"), controller.create);
+router.put("/:id", verifyToken, upload.single("image"), controller.update);
 router.delete("/:id", verifyToken, controller.delete);
 
 module.exports = router;

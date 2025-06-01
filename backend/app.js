@@ -70,6 +70,16 @@ app.use((err, req, res, next) => {
   });
 });
 
+// Add error handling middleware
+app.use((err, req, res, next) => {
+  console.error('Error:', err);
+  res.status(500).json({
+    error: 'Internal Server Error',
+    message: process.env.NODE_ENV === 'development' ? err.message : undefined,
+    stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
+  });
+});
+
 // === Start Server ===
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, async () => {
