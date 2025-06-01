@@ -1,18 +1,11 @@
 const Product = require("../models/ProductModel");
 const multer = require("multer");
 const path = require("path");
+const { Storage } = require("@google-cloud/storage");
+const storage = new Storage();
+const bucket = storage.bucket("tolong");
 
 // Konfigurasi penyimpanan gambar dengan multer
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "uploads/"); // Menyimpan gambar di folder 'uploads'
-  },
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname); // Mengambil ekstensi file
-    cb(null, Date.now() + ext); // Menyimpan file dengan nama unik berdasarkan timestamp
-  },
-});
-
 const upload = multer({ storage }); // Menggunakan konfigurasi multer
 
 exports.getAll = async (req, res) => {
@@ -28,15 +21,32 @@ exports.getById = async (req, res) => {
 
 exports.create = async (req, res) => {
   const { name, price, stock, description, category } = req.body;
-  const image = req.file ? `/uploads/${req.file.filename}` : ""; // Mendapatkan path gambar yang di-upload
-
+  let imageUrl = "";
   try {
+    if (req.file) {
+      // Upload ke Cloud Storage
+      const blob = bucket.file(req.file.originalname);
+      const blobStream = blob.createWriteStream({
+        resumable: false,
+        public: true,
+      });
+
+      await new Promise((resolve, reject) => {
+        blobStream.on("error", (err) => reject(err));
+        blobStream.on("finish", () => {
+          imageUrl = `https://storage.googleapis.com/tolong/${blob.name}`;
+          resolve();
+        });
+        blobStream.end(req.file.buffer);
+      });
+    }
+
     // Menyimpan produk ke database dengan path gambar yang di-upload
     await Product.createProduct(
       name,
       price,
       stock,
-      image,
+      imageUrl, // URL dari Cloud Storage
       description,
       category
     );
@@ -73,21 +83,31 @@ exports.delete = async (req, res) => {
 exports.update = async (req, res) => {
   const { id } = req.params;
   const { name, price, stock, description, category } = req.body;
-  let image;
-  if (req.file) {
-    image = `/uploads/${req.file.filename}`;
-  } else {
-    // Ambil image lama dari database jika tidak upload gambar baru
-    const [product] = await Product.getProductById(id);
-    image = product[0]?.image_url || "";
-  }
+  let imageUrl = "";
   try {
+    if (req.file) {
+      const blob = bucket.file(req.file.originalname);
+      const blobStream = blob.createWriteStream({
+        resumable: false,
+        public: true,
+      });
+
+      await new Promise((resolve, reject) => {
+        blobStream.on("error", (err) => reject(err));
+        blobStream.on("finish", () => {
+          imageUrl = `https://storage.googleapis.com/tolong/${blob.name}`;
+          resolve();
+        });
+        blobStream.end(req.file.buffer);
+      });
+    }
+
     await Product.updateProduct(
       id,
       name,
       price,
       stock,
-      image,
+      imageUrl || req.body.image, // Use existing image if no new file
       description,
       category
     );
