@@ -20,7 +20,7 @@ const upload = multer({
 });
 
 // Product routes
-router.post("/add", verifyToken, upload.single("image"), controller.create);
+router.post("/", verifyToken, upload.single("image"), controller.create);
 router.put("/:id", verifyToken, upload.single("image"), controller.update);
 router.get("/", controller.getAll);
 router.get("/:id", controller.getById);
