@@ -56,36 +56,77 @@ exports.update = async (req, res) => {
   try {
     const { id } = req.params;
     const { name, price, stock, description, category } = req.body;
-    let imageUrl;
+    let imageUrl = undefined;
+
+    // Tambahkan logging untuk debug
+    console.log("Update request:", {
+      id,
+      body: req.body,
+      file: req.file,
+    });
 
     // Get existing product
     const [existingProduct] = await Product.getProductById(id);
     if (!existingProduct.length) {
+      console.log("Product not found:", id);
       return res.status(404).json({ message: "Product not found" });
     }
 
-    // If new image uploaded, delete old image and upload new one
+    // Handle image upload if new image provided
     if (req.file) {
-      if (existingProduct[0].image_url) {
-        await deleteFile(existingProduct[0].image_url);
+      try {
+        // Delete old image if exists
+        if (existingProduct[0].image_url) {
+          await deleteFile(existingProduct[0].image_url);
+        }
+        // Upload new image
+        imageUrl = await uploadFile(req.file);
+      } catch (uploadError) {
+        console.error("Image upload error:", uploadError);
+        return res.status(500).json({
+          message: "Failed to upload image",
+          error: uploadError.message,
+        });
       }
-      imageUrl = await uploadFile(req.file);
     }
 
+    // Prepare update data
+    const updateData = {
+      name: name || existingProduct[0].name,
+      price: price || existingProduct[0].price,
+      stock: stock !== undefined ? stock : existingProduct[0].stock,
+      description: description || existingProduct[0].description,
+      category: category || existingProduct[0].category,
+      image_url:
+        imageUrl !== undefined
+          ? imageUrl
+          : existingProduct[0].image_url,
+    };
+
+    console.log("Update data:", updateData);
+
+    // Update product
     await Product.updateProduct(
       id,
-      name,
-      price,
-      stock,
-      imageUrl,
-      description,
-      category
+      updateData.name,
+      updateData.price,
+      updateData.stock,
+      updateData.image_url,
+      updateData.description,
+      updateData.category
     );
 
-    res.json({ message: "Product updated successfully" });
+    res.json({
+      message: "Product updated successfully",
+      data: updateData,
+    });
   } catch (error) {
     console.error("Update product error:", error);
-    res.status(500).json({ message: "Failed to update product", error });
+    res.status(500).json({
+      message: "Failed to update product",
+      error: error.message,
+      stack: process.env.NODE_ENV === "development" ? error.stack : undefined,
+    });
   }
 };
 
