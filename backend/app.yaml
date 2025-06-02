@@ -1,0 +1,22 @@
+runtime: nodejs20
+service: gudang-sparepart
+instance_class: F1
+env_variables:
+  NODE_ENV: "production"
+
+handlers:
+  # Handler untuk file statis uploads
+  - url: /uploads
+    static_dir: uploads
+
+  # Handler untuk file statis frontend build
+  - url: /(.*\.(css|js|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot|json))
+    static_files: build/\1
+    upload: build/.*
+
+  # SPA fallback
+  - url: /.*
+    static_files: build/index.html
+    upload: build/index.html
+
+default_expiration: "1h"
