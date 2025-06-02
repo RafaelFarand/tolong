@@ -249,7 +249,13 @@ class Product extends BasePage {
                       style={{ margin: 0 }}
                     >
                       <img
-                        src={product.image_url || "/logo192.png"}
+                        src={
+                          product.image_url
+                            ? (product.image_url.startsWith('http')
+                                ? product.image_url
+                                : API_URL + product.image_url)
+                            : "/logo192.png"
+                        }
                         alt={product.name}
                         style={{
                           objectFit: "cover",
