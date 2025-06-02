@@ -1,19 +1,7 @@
 const Product = require("../models/ProductModel");
+const { uploadFile } = require("../config/Storage");
 const multer = require("multer");
 const path = require("path");
-
-// Konfigurasi penyimpanan gambar dengan multer
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "uploads/"); // Menyimpan gambar di folder 'uploads'
-  },
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname); // Mengambil ekstensi file
-    cb(null, Date.now() + ext); // Menyimpan file dengan nama unik berdasarkan timestamp
-  },
-});
-
-const upload = multer({ storage }); // Menggunakan konfigurasi multer
 
 exports.getAll = async (req, res) => {
   const [products] = await Product.getAllProducts();
@@ -28,10 +16,15 @@ exports.getById = async (req, res) => {
 
 exports.create = async (req, res) => {
   const { name, price, stock, description, category } = req.body;
-  const image = req.file ? `/uploads/${req.file.filename}` : ""; // Mendapatkan path gambar yang di-upload
-
+  let image = "";
+  if (req.file) {
+    try {
+      image = await uploadFile(req.file); // upload ke GCS
+    } catch (err) {
+      return res.status(500).json({ message: "Gagal upload gambar", error: err });
+    }
+  }
   try {
-    // Menyimpan produk ke database dengan path gambar yang di-upload
     await Product.createProduct(
       name,
       price,
@@ -49,14 +42,11 @@ exports.create = async (req, res) => {
 exports.delete = async (req, res) => {
   const { id } = req.params;
   try {
-    // Hapus semua order yang terkait dengan produk ini (baik pending maupun checked_out)
     const db = require('../config/Database');
     await db.execute('DELETE FROM orders WHERE product_id = ?', [id]);
-    // Hapus produk setelah semua order terkait dihapus
     await Product.deleteProduct(id);
     res.json({ message: "Product deleted successfully" });
   } catch (error) {
-    // Tangani error constraint foreign key
     let msg = "Failed to delete product";
     if (
       error &&
@@ -75,9 +65,12 @@ exports.update = async (req, res) => {
   const { name, price, stock, description, category } = req.body;
   let image;
   if (req.file) {
-    image = `/uploads/${req.file.filename}`;
+    try {
+      image = await uploadFile(req.file); // upload ke GCS
+    } catch (err) {
+      return res.status(500).json({ message: "Gagal upload gambar", error: err });
+    }
   } else {
-    // Ambil image lama dari database jika tidak upload gambar baru
     const [product] = await Product.getProductById(id);
     image = product[0]?.image_url || "";
   }

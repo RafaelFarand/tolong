@@ -1,70 +1,140 @@
-# Getting Started with Create React App
+ API Documentation
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+ User API
 
-## Available Scripts
+Register
+URL: /register
+Method: POST
+Body:
 
-In the project directory, you can run:
+{
+  "username": "string",
+  "email": "string",
+  "password": "string"
+}
 
-### `npm start`
+ Login
+URL: /login
+Method: POST
+Body:
+{
+  "email": "string",
+  "password": "string"
+}
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+Get User by ID
+URL: /:id
+Method: GET
+Headers: Authorization: Bearer <token>
+Params: id - User ID
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+ Update User
+URL: /:id
+Method: PUT
+Headers: Authorization: Bearer <token>
+Params: id - User ID
+Body: Updated user fields
 
-### `npm test`
+Delete User
+URL: /:id
+Method: DELETE
+Headers: Authorization: Bearer <token>
+Params: id - User ID
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+ Auth Token API
 
-### `npm run build`
+Refresh Token
+URL: /token
+Method: POST
+{
+  "refreshToken": "string"
+}
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+Logout
+URL: /logout
+Method: POST
+Body:
+{
+  "refreshToken": "string"
+}
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+Order API
+All routes below require Authorization: Bearer <token>
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+Get All Orders
+URL: /
+Method: GET
 
-### `npm run eject`
+Get Order by ID
+URL: /:id
+Method: GET
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+Create Order
+URL: /
+Method: POST
+Body: Order data
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+Update Order
+URL: /:id
+Method: PUT
+Params: id - Order ID
+Body: Updated order data
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+Delete Order
+URL: /:id
+Method: DELETE
+Params: id - Order ID
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+Get Orders by User ID
+URL: /user/:userId
+Method: GET
+Params: userId - User ID
 
-## Learn More
+Checkout All Orders
+URL: /checkout
+Method: PUT
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+Checkout Specific Order
+URL: /checkout/:id
+Method: PUT
+Params: id - Order ID
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+Get Checked-out Orders by User
+URL: /user/:userId/checkedout
 
-### Code Splitting
+Method: GET
+Params: userId - User ID
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+Product API
 
-### Analyzing the Bundle Size
+Get All Products
+URL: /
+Method: GET
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+Get Product by ID
+URL: /:id
+Method: GET
+Params: id - Product ID
 
-### Making a Progressive Web App
+Add New Product
+URL: /
+Method: POST
+Headers: Authorization: Bearer <token>
+Form-data:
+name: Nama produk
+price: Harga
+description: Deskripsi
+image: Gambar (file)
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+Update Product
+URL: /:id
+Method: PUT
+Headers: Authorization: Bearer <token>
+Params: id - Product ID
+Form-data: Field produk + file image opsional
 
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+Delete Product
+URL: /:id
+Method: DELETE
+Headers: Authorization: Bearer <token>
+Params: id - Product ID
