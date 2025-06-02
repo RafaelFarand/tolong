@@ -5,7 +5,13 @@ const storage = new Storage({
   keyFilename: process.env.GOOGLE_APPLICATION_CREDENTIALS
 });
 
-const bucket = storage.bucket(process.env.GCP_BUCKET_NAME);
+// Add initialization error handling
+storage.getBuckets().catch(err => {
+  console.error('Error initializing storage:', err);
+  process.exit(1);
+});
+
+const bucket = storage.bucket('tolong'); // Set bucket name directly
 
 const uploadFile = (file) => {
   return new Promise((resolve, reject) => {
@@ -14,47 +20,41 @@ const uploadFile = (file) => {
       return;
     }
 
-    const blob = bucket.file(`products/${Date.now()}_${file.originalname}`);
-    const blobStream = blob.createWriteStream({
-      resumable: false,
-      gzip: true,
-      metadata: {
-        contentType: file.mimetype,
-      },
-    });
+    try {
+      // Generate unique filename
+      const fileName = `products/${Date.now()}_${file.originalname.replace(/\s+/g, '_')}`;
+      const blob = bucket.file(fileName);
+      const blobStream = blob.createWriteStream({
+        resumable: false,
+        metadata: {
+          contentType: file.mimetype,
+        }
+      });
 
-    blobStream.on('error', (error) => {
-      console.error('Upload error:', error);
-      reject(error);
-    });
-
-    blobStream.on('finish', async () => {
-      try {
-        await blob.makePublic();
-        const publicUrl = `https://storage.googleapis.com/${bucket.name}/${blob.name}`;
-        resolve(publicUrl);
-      } catch (error) {
+      blobStream.on('error', (error) => {
+        console.error('Upload error:', error);
         reject(error);
-      }
-    });
+      });
 
-    blobStream.end(file.buffer);
+      blobStream.on('finish', async () => {
+        try {
+          // Make the file public
+          await blob.makePublic();
+          // Get the public URL
+          const publicUrl = `https://storage.googleapis.com/tolong/${fileName}`;
+          resolve(publicUrl);
+        } catch (error) {
+          console.error('Error making file public:', error);
+          reject(error);
+        }
+      });
+
+      blobStream.end(file.buffer);
+    } catch (error) {
+      console.error('Error in upload process:', error);
+      reject(error);
+    }
   });
 };
 
-const deleteFile = async (fileUrl) => {
-  try {
-    if (!fileUrl) return;
-    
-    const fileName = fileUrl.split('/').pop();
-    const file = bucket.file(`products/${fileName}`);
-    
-    await file.delete();
-    return true;
-  } catch (error) {
-    console.error('Delete file error:', error);
-    return false;
-  }
-};
-
-module.exports = { uploadFile, deleteFile };
+module.exports = { uploadFile };

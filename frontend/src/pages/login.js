@@ -36,6 +36,8 @@ const res = await axios.post(
 );
       
       localStorage.setItem("token", res.data.token);
+      // Tambahkan di sini untuk debug
+      console.log("Token:", localStorage.getItem("token"));
       
       // Ambil role langsung dari response
       const role = res.data.role;

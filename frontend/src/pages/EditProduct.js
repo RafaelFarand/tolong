@@ -35,6 +35,7 @@ function EditProduct() {
     }
   };
 
+  // Pastikan form dapat menangani URL gambar dari Cloud Storage
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -45,9 +46,10 @@ function EditProduct() {
       formData.append("stock", product.stock);
       formData.append("description", product.description);
       formData.append("category", product.category);
-      if (product.image) {
+      if (product.image instanceof File) {
         formData.append("image", product.image);
       }
+
       const config = {
         headers: {
           "Content-Type": "multipart/form-data",
