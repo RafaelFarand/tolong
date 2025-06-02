@@ -185,19 +185,7 @@ class Register extends BasePage {
                   />
                   &nbsp;Customer
                 </label>
-                <label
-                  className="radio"
-                  style={{ marginLeft: 16, color: "var(--primary)" }}
-                >
-                  <input
-                    type="radio"
-                    name="role"
-                    value="admin"
-                    checked={role === "admin"}
-                    onChange={this.handleChange}
-                  />
-                  &nbsp;Admin
-                </label>
+                
               </div>
             </div>
             <div className="field is-grouped is-grouped-centered mt-5">
