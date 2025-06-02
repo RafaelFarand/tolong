@@ -1,19 +1,14 @@
 const Product = require("../models/ProductModel");
+const { uploadFile } = require("../config/Storage");
 const multer = require("multer");
-const path = require("path");
 
-// Konfigurasi penyimpanan gambar dengan multer
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "uploads/"); // Menyimpan gambar di folder 'uploads'
-  },
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname); // Mengambil ekstensi file
-    cb(null, Date.now() + ext); // Menyimpan file dengan nama unik berdasarkan timestamp
-  },
+// Configure multer for memory storage
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB limit
+  }
 });
-
-const upload = multer({ storage }); // Menggunakan konfigurasi multer
 
 exports.getAll = async (req, res) => {
   const [products] = await Product.getAllProducts();
@@ -28,21 +23,34 @@ exports.getById = async (req, res) => {
 
 exports.create = async (req, res) => {
   const { name, price, stock, description, category } = req.body;
-  const image = req.file ? `/uploads/${req.file.filename}` : ""; // Mendapatkan path gambar yang di-upload
-
+  
   try {
-    // Menyimpan produk ke database dengan path gambar yang di-upload
+    let imageUrl = '';
+    if (req.file) {
+      // Upload to Cloud Storage
+      imageUrl = await uploadFile(req.file);
+    }
+
+    // Save product with Cloud Storage URL
     await Product.createProduct(
       name,
       price,
       stock,
-      image,
+      imageUrl, // Use the Cloud Storage URL
       description,
       category
     );
-    res.status(201).json({ message: "Product created successfully" });
+    
+    res.status(201).json({ 
+      message: "Product created successfully",
+      imageUrl 
+    });
   } catch (error) {
-    res.status(500).json({ message: "Failed to create product", error });
+    console.error('Error creating product:', error);
+    res.status(500).json({ 
+      message: "Failed to create product", 
+      error: error.message 
+    });
   }
 };
 

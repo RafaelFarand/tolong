@@ -35,6 +35,26 @@ function EditProduct() {
     }
   };
 
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    const maxSize = 5 * 1024 * 1024; // 5MB
+
+    if (file && file.size > maxSize) {
+      alert("Ukuran file terlalu besar (max 5MB)");
+      e.target.value = "";
+      return;
+    }
+
+    if (file && !["image/jpeg", "image/jpg"].includes(file.type)) {
+      alert("Format file harus JPG/JPEG");
+      e.target.value = "";
+      return;
+    }
+
+    setProduct({ ...product, image: file });
+  };
+
+  // Pastikan form dapat menangani URL gambar dari Cloud Storage
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -45,9 +65,10 @@ function EditProduct() {
       formData.append("stock", product.stock);
       formData.append("description", product.description);
       formData.append("category", product.category);
-      if (product.image) {
+      if (product.image instanceof File) {
         formData.append("image", product.image);
       }
+
       const config = {
         headers: {
           "Content-Type": "multipart/form-data",
@@ -60,8 +81,8 @@ function EditProduct() {
     } catch (err) {
       setError(
         err.response?.data?.message ||
-        err.response?.data?.error ||
-        "Gagal update produk"
+          err.response?.data?.error ||
+          "Gagal update produk"
       );
     }
   };
@@ -233,7 +254,7 @@ function EditProduct() {
                 type="file"
                 name="image"
                 accept="image/jpeg, image/jpg"
-                onChange={handleChange}
+                onChange={handleFileChange}
                 style={{
                   borderColor: "var(--red)",
                   background: "var(--white)",
