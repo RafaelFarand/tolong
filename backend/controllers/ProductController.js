@@ -1,14 +1,19 @@
 const Product = require("../models/ProductModel");
-const { uploadFile } = require("../config/Storage");
 const multer = require("multer");
+const path = require("path");
 
-// Configure multer for memory storage
-const upload = multer({
-  storage: multer.memoryStorage(),
-  limits: {
-    fileSize: 5 * 1024 * 1024, // 5MB limit
-  }
+// Konfigurasi penyimpanan gambar dengan multer
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "uploads/"); // Menyimpan gambar di folder 'uploads'
+  },
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname); // Mengambil ekstensi file
+    cb(null, Date.now() + ext); // Menyimpan file dengan nama unik berdasarkan timestamp
+  },
 });
+
+const upload = multer({ storage }); // Menggunakan konfigurasi multer
 
 exports.getAll = async (req, res) => {
   const [products] = await Product.getAllProducts();
@@ -23,34 +28,21 @@ exports.getById = async (req, res) => {
 
 exports.create = async (req, res) => {
   const { name, price, stock, description, category } = req.body;
-  
-  try {
-    let imageUrl = '';
-    if (req.file) {
-      // Upload to Cloud Storage
-      imageUrl = await uploadFile(req.file);
-    }
+  const image = req.file ? `/uploads/${req.file.filename}` : ""; // Mendapatkan path gambar yang di-upload
 
-    // Save product with Cloud Storage URL
+  try {
+    // Menyimpan produk ke database dengan path gambar yang di-upload
     await Product.createProduct(
       name,
       price,
       stock,
-      imageUrl, // Use the Cloud Storage URL
+      image,
       description,
       category
     );
-    
-    res.status(201).json({ 
-      message: "Product created successfully",
-      imageUrl 
-    });
+    res.status(201).json({ message: "Product created successfully" });
   } catch (error) {
-    console.error('Error creating product:', error);
-    res.status(500).json({ 
-      message: "Failed to create product", 
-      error: error.message 
-    });
+    res.status(500).json({ message: "Failed to create product", error });
   }
 };
 

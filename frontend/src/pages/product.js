@@ -249,13 +249,12 @@ class Product extends BasePage {
                       style={{ margin: 0 }}
                     >
                       <img
-                        src={product.image_url ? product.image_url : "/logo192.png"}
+                        src={product.image_url || "/logo192.png"}
                         alt={product.name}
                         style={{
-                          width: "100%",
-                          height: 200,
                           objectFit: "cover",
-                          borderRadius: "8px 8px 0 0",
+                          borderRadius: 12,
+                          boxShadow: "0 2px 8px 0 rgba(74,98,138,0.08)",
                         }}
                       />
                     </figure>

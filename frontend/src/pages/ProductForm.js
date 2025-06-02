@@ -1,6 +1,5 @@
 import axios from "axios";
 import React from "react";
-import API_URL from "../config/api";
 
 class ProductForm extends React.Component {
   state = {
@@ -40,16 +39,17 @@ class ProductForm extends React.Component {
       formData.append("category", category);
       formData.append("image", image); // Menambahkan gambar ke FormData
 
-      // Ubah URL endpoint untuk mengarah ke Cloud Storage
+      const config = {
+        headers: {
+          "Content-Type": "multipart/form-data", // Mengatur header untuk upload file
+          Authorization: `Bearer ${token}`,
+        },
+      };
+
       const response = await axios.post(
-        `${API_URL}/api/products`, // Pastikan API_URL mengarah ke backend yang benar
+        "https://be-rest-1061342868557.us-central1.run.app/api/products",
         formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        config
       );
 
       this.setState({

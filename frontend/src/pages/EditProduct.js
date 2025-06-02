@@ -35,25 +35,6 @@ function EditProduct() {
     }
   };
 
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    const maxSize = 5 * 1024 * 1024; // 5MB
-
-    if (file && file.size > maxSize) {
-      alert("Ukuran file terlalu besar (max 5MB)");
-      e.target.value = "";
-      return;
-    }
-
-    if (file && !["image/jpeg", "image/jpg"].includes(file.type)) {
-      alert("Format file harus JPG/JPEG");
-      e.target.value = "";
-      return;
-    }
-
-    setProduct({ ...product, image: file });
-  };
-
   // Pastikan form dapat menangani URL gambar dari Cloud Storage
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -81,8 +62,8 @@ function EditProduct() {
     } catch (err) {
       setError(
         err.response?.data?.message ||
-          err.response?.data?.error ||
-          "Gagal update produk"
+        err.response?.data?.error ||
+        "Gagal update produk"
       );
     }
   };
@@ -254,7 +235,7 @@ function EditProduct() {
                 type="file"
                 name="image"
                 accept="image/jpeg, image/jpg"
-                onChange={handleFileChange}
+                onChange={handleChange}
                 style={{
                   borderColor: "var(--red)",
                   background: "var(--white)",
