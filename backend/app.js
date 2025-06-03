@@ -12,7 +12,7 @@ dotenv.config();
 
 // === Daftar domain yang diperbolehkan ===
 const allowedOrigins = [
-  'https://gudang-sparepart-dot-b-01-450713.uc.r.appspot.com'
+  'https://gudang-sparepart-dot-b-01-450713.uc.r.appspot.com/'
 ];
 
 // === CORS Middleware ===
